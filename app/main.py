@@ -30,11 +30,18 @@ my_notes = [{
         "id" : 2
     }]
 
-# helper method for getting post by ID
+# helper method for getting note by ID
 def find_note(id):
     for i in my_notes:
         if i["id"] == id:
             return i
+        
+# helper method for finding index of a note using ID
+def find_index_note(id: int):
+    for index, note in enumerate(my_notes):
+        if note['id'] == id:
+            return index
+    return None
 
 # root
 @app.get("/")
@@ -63,3 +70,24 @@ def get_note(id : int, response : Response):
                             detail = f"note with ID of {id} was not found")
     return {"Data" : note}
 
+# delete a note 
+@app.delete("/notes/{id}")
+def delete_note(id: int, response : Response):
+    index = find_index_note(id)
+    if index is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    my_notes.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+# update a note 
+@app.put("/notes/{id}")
+def update_note(id: int, response : Response, note: Note):
+    index = find_index_note(id)
+    if index is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    note_dict = note.dict()
+    note_dict['id'] = id
+    my_notes[index] = note_dict
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
