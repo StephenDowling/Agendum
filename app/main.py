@@ -3,32 +3,67 @@ from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel, Field
 from datetime import date
+from enum import Enum
+import psycopg
+from psycopg.rows import dict_row
+import time
 
 
 app = FastAPI()
 
 
+# enum for priority
+class Priority(Enum):
+    LOW = 0
+    MEDIUM = 1
+    HIGH = 2
+
 # defines what a note is and should look like
 class Note(BaseModel):
-    created_date: date = Field(default_factory=date.today)
     title: str
     content: str
     completed: Optional[bool] = False
+    priority: Optional[Priority] = Priority.LOW  #default value
+    created_date: date = Field(default_factory=date.today)
+    due_date: Optional[date] = Field(default_factory=date.today)
 
+while True:
+    try:
+        conn = psycopg.connect(
+            host='localhost',
+            dbname='Agendum', 
+            user='postgres',
+            password='password', 
+            row_factory=dict_row 
+        )
+        cursor = conn.cursor()
+        print("Database connection was successful!")
+        break
+    except Exception as error:
+        print("Connecting to database failed :(")
+        print("Error:", error)
+        time.sleep(2) # keep trying to connect to database every 2 seconds 
+    
 my_notes = [{
-        "created_date" : "2025-05-24",
-        "title" : "title of note 1",
-        "content" : "content of note 1",
-        "completed" : False,
-        "id" : 1
-    },
-    {
-        "created_date" : "2025-05-25",
-        "title" : "title of note 2",
-        "content" : "content of note 2",
-        "completed" : True,
-        "id" : 2
-    }]
+    "title": "To Do list",
+    "content": "Take out the bins\nFeed the dogs\nGo for a walk",
+    "completed": False,
+    "priority": 0,
+    "created_date": "2025-06-30",
+    "due_date": "2025-07-01",
+    "id": 1
+},
+{
+    "title": "Shopping List",
+    "content": "Bread\nMilk\nButter",
+    "completed": False,
+    "priority": 1,
+    "created_date": "2025-06-30",
+    "due_date": "2025-07-01",
+    "id": 2
+}]
+
+print(my_notes)
 
 # helper method for getting note by ID
 def find_note(id):
