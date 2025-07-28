@@ -7,10 +7,17 @@ from enum import IntEnum
 import psycopg
 from psycopg.rows import dict_row
 import time
+from sqlmodel import SQLModel
+from app.database import engine, create_db_and_tables
+from app import models           
 
+SQLModel.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
 # enum for priority
 class Priority(IntEnum):
@@ -38,7 +45,7 @@ while True:
             row_factory=dict_row 
         )
         cursor = conn.cursor()
-        print("Database connection was successful!")
+        print("Non-ORM Database connection was successful!")
         break
     except Exception as error:
         print("Connecting to database failed :(")
@@ -63,8 +70,6 @@ my_notes = [{
     "due": "2025-07-01",
     "id": 2
 }]
-
-print(my_notes)
 
 # helper method for getting note by ID
 def find_note(id):
