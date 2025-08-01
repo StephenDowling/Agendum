@@ -31,7 +31,7 @@ class Note(SQLModel, table=True):
     content: str
     completed: bool = Field(default=False)
     priority: int = Field(default=0)
-    created: datetime = Field(default_factory=datetime.utcnow)
+    created: date = Field(default_factory=lambda:datetime.utcnow().date())  
     due: Optional[date] = None
 
     folder: Optional[Folder] = Relationship(back_populates="notes")
